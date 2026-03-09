@@ -1,0 +1,20 @@
+flutter_native_splash:
+  color: "#7C3AED"
+  color_dark: "#7C3AED"
+
+  # use image instead of background_image to avoid Android 12+ issues
+  image: assets/app_icon.png
+  image_dark: assets/app_icon.png
+
+  fullscreen: true
+
+  # alignment settings to maintain aspect ratio where possible
+  android_gravity: center
+  ios_content_mode: scaleAspectFit
+  web_image_mode: contain
+
+  android_12:
+    image: assets/app_icon.png
+    image_dark: assets/app_icon.png
+    color: "#7C3AED"
+    color_dark: "#7C3AED"
