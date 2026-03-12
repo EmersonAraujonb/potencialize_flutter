@@ -1,4 +1,5 @@
 import 'package:app_cursos/pages/home_page.dart';
+// ignore: depend_on_referenced_packages
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'login_page.dart';

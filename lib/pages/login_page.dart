@@ -49,6 +49,7 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Email ou senha inválidos"),
+          backgroundColor: Color(0xFFFF0400),
         ),
       );
     }

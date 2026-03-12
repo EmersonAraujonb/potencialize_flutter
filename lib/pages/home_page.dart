@@ -1,43 +1,25 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:app_cursos/core/supabase_client.dart';
+import 'package:flutter/material.dart';
 import 'my_courses.dart';
-import '../services/auth_service.dart';
+// import '../services/auth_service.dart';
 import 'user_page.dart';
-import 'package:app_cursos/pages/login_page.dart';
+// import 'package:app_cursos/pages/login_page.dart';
 
 
 class HomePage extends StatelessWidget {
+
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authService = AuthService();
+    // final authService = AuthService();
+    final user = supabase.auth.currentUser;
+    String? userAvatarUrl = user?.userMetadata?['avatar_url'];
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              try {
-                await authService.signOut();
-
-                Navigator.pushAndRemoveUntil(
-                  // ignore: use_build_context_synchronously
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginPage()),
-                  (route) => false,
-                );
-              } catch (e) {
-                // ignore: use_build_context_synchronously
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Erro ao sair"),
-                  ),
-                );
-              }
-            },
-          ),
           IconButton(
             onPressed: () {
               Navigator.push(
@@ -47,8 +29,16 @@ class HomePage extends StatelessWidget {
                 ),
               );
             },
-            icon: const Icon(Icons.person_outline),
-            tooltip: 'Usuario',
+            icon: CircleAvatar(
+              radius: 14,
+              backgroundImage: userAvatarUrl != null
+                  ? NetworkImage(userAvatarUrl)
+                  : null,
+              child: userAvatarUrl == null
+                  ? const Icon(Icons.person, size: 18)
+                  : null,
+            ),
+            tooltip: 'Usuário',
           ),
         ],
       ),
