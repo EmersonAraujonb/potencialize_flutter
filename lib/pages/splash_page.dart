@@ -1,4 +1,5 @@
-import 'package:app_cursos/pages/home_page.dart';
+// import 'package:app_cursos/pages/home_page.dart';
+import 'package:app_cursos/pages/main_page.dart';
 // ignore: depend_on_referenced_packages
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
@@ -73,7 +74,7 @@ class _SplashPageState extends State<SplashPage>
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => const HomePage(),
+          builder: (_) => MainPage(),
         ),
       );
     } else {

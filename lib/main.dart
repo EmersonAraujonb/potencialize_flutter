@@ -1,67 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'pages/splash_page.dart';
 
-void main() async{
-  
+Future<void> main() async {
+
   WidgetsFlutterBinding.ensureInitialized();
 
+  // INICIALIZA SUPABASE
   await Supabase.initialize(
     url: 'https://rowivngdnxeixisgzprm.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvd2l2bmdkbnhlaXhpc2d6cHJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMDI2MTQsImV4cCI6MjA4ODY3ODYxNH0.d4Npa5D9GzXPWcUzFA4yd2DWJVvjMCyFWuWiOcn9rao'
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvd2l2bmdkbnhlaXhpc2d6cHJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMDI2MTQsImV4cCI6MjA4ODY3ODYxNH0.d4Npa5D9GzXPWcUzFA4yd2DWJVvjMCyFWuWiOcn9rao',
   );
 
-  runApp(const MyApp());
+  // CARREGA TEMA SALVO
+  final prefs = await SharedPreferences.getInstance();
+  bool isDark = prefs.getBool('isDark') ?? false;
+
+  runApp(MyApp(isDark: isDark));
 }
 
+class MyApp extends StatefulWidget {
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isDark;
+
+  const MyApp({super.key, required this.isDark});
+
+  static _MyAppState of(BuildContext context) =>
+      context.findAncestorStateOfType<_MyAppState>()!;
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+
+  late ThemeMode _themeMode;
+
+  @override
+  void initState() {
+    super.initState();
+    _themeMode = widget.isDark ? ThemeMode.dark : ThemeMode.light;
+  }
+
+  Future<void> toggleTheme(bool dark) async {
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDark', dark);
+
+    setState(() {
+      _themeMode = dark ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Potencialize',
+
+      themeMode: _themeMode,
+
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFF3F4F6),
-
+        brightness: Brightness.light,
         primaryColor: const Color(0xFF7C3AED),
-
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF7C3AED),
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-
-        colorScheme: const ColorScheme.light(
-          primary: Color(0xFF7C3AED),
-          secondary: Color(0xFFF59E0B),
-        ),
 
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF7C3AED),
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-
-        inputDecorationTheme: InputDecorationTheme(
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(
-              color: Color(0xFF7C3AED),
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
+
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF7C3AED),
+            foregroundColor: Colors.white,
+          ),
+        ),
+      ),
+
       home: const SplashPage(),
     );
   }

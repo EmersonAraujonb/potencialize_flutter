@@ -293,7 +293,7 @@ class _UserPageState extends State<UserPage> {
               ElevatedButton.icon(
                 onPressed: () async {
                   try {
-                    await authService.signOut();
+                    await supabase.auth.signOut();
 
                     Navigator.pushAndRemoveUntil(
                       context,

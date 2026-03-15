@@ -1,5 +1,5 @@
-﻿import 'package:flutter/material.dart';
-import 'home_page.dart';
+﻿import 'package:app_cursos/pages/main_page.dart';
+import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'register_page.dart';
 
@@ -10,7 +10,9 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
+
   static const String _appVersion = "1.0.0+1";
 
   final _formKey = GlobalKey<FormState>();
@@ -21,193 +23,261 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
   bool _isLoading = false;
 
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    );
+
+    _controller.forward();
+  }
+
   void login() async {
-  if (_formKey.currentState!.validate()) {
-    setState(() => _isLoading = true);
 
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
+    if (_formKey.currentState!.validate()) {
 
-    try {
-      final response = await authService.signIn(email, password);
+      setState(() => _isLoading = true);
 
-      if (response.session != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const HomePage(),
-          ),
-        );
-      } else {
+      final email = emailController.text.trim();
+      final password = passwordController.text.trim();
+
+      try {
+
+        final response = await authService.signIn(email, password);
+
+        if (response.session != null) {
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const MainPage(),
+            ),
+          );
+
+        } else {
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Email ou senha inválidos"),
+            ),
+          );
+
+        }
+
+      } catch (e) {
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Email ou senha inválidos"),
+            content: Text("Erro ao fazer login"),
+            backgroundColor: Colors.red,
           ),
         );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Email ou senha inválidos"),
-          backgroundColor: Color(0xFFFF0400),
-        ),
-      );
-    }
 
-    setState(() => _isLoading = false);
+      }
+
+      setState(() => _isLoading = false);
+    }
   }
-}
 
   @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      extendBody: true,
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          color: Colors.transparent,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Text(
-              "Versão $_appVersion",
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.black54,
-              ),
-            ),
-          ),
+
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Text(
+          "Versão $_appVersion",
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 12),
         ),
       ),
+
       body: Container(
-        // Adiciona a decoração com o gradiente
-        decoration: BoxDecoration(
+
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
-            // Define o início e o fim do gradiente
+            colors: [
+              Color(0xFF7C3AED),
+              Color(0xFFEDE9FE),
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            // Lista de cores para o gradiente (mínimo de duas)
-            colors: [
-              Color.fromARGB(255, 152, 4, 250), // Uma cor inicial
-              Color.fromARGB(255, 255, 255, 255), // Uma cor final
-            ],
           ),
         ),
-        padding: const EdgeInsets.all(24),
+
         child: Center(
-          child: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    "Login",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
 
-                  const SizedBox(height: 40),
+          child: FadeTransition(
 
-                  // EMAIL
-                  TextFormField(
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: "Email",
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Informe o email";
-                      }
-                      if (!value.contains("@")) {
-                        return "Email inválido";
-                      }
-                      return null;
-                    },
-                  ),
+            opacity: _fadeAnimation,
 
-                  const SizedBox(height: 20),
+            child: SingleChildScrollView(
 
-                  // SENHA
-                  TextFormField(
-                    controller: passwordController,
-                    obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: "Senha",
-                      border: const OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.length < 6) {
-                        return "Senha mínima 6 caracteres";
-                      }
-                      return null;
-                    },
-                  ),
+              padding: const EdgeInsets.all(24),
 
-                  const SizedBox(height: 30),
+              child: Card(
 
-                  SizedBox(
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : login,
-                      child: _isLoading
-                          ? const CircularProgressIndicator(
-                              color: Colors.white,
-                            )
-                          : const Text("Entrar"),
-                    ),
-                  ),
+                elevation: 10,
 
-                  const SizedBox(height: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Não tem uma conta?"),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const RegisterPage(),
+                child: Padding(
+
+                  padding: const EdgeInsets.all(28),
+
+                  child: Form(
+
+                    key: _formKey,
+
+                    child: Column(
+
+                      mainAxisSize: MainAxisSize.min,
+
+                      children: [
+
+                        /// LOGO
+                        Column(
+                          children: const [
+
+                            CircleAvatar(
+                              radius: 36,
+                              backgroundColor: Color(0xFF7C3AED),
+                              child: Icon(
+                                Icons.school,
+                                size: 36,
+                                color: Colors.white,
+                              ),
                             ),
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                          textStyle: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
+
+                            SizedBox(height: 12),
+
+                            Text(
+                              "Potencialize",
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        /// EMAIL
+                        TextFormField(
+                          controller: emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            labelText: "Email",
+                            prefixIcon: Icon(Icons.email),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return "Informe o email";
+                            }
+                            if (!value.contains("@")) {
+                              return "Email inválido";
+                            }
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        /// SENHA
+                        TextFormField(
+                          controller: passwordController,
+                          obscureText: _obscurePassword,
+                          decoration: InputDecoration(
+                            labelText: "Senha",
+                            prefixIcon: const Icon(Icons.lock),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.length < 6) {
+                              return "Senha mínima 6 caracteres";
+                            }
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        /// BOTÃO LOGIN
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : login,
+
+                            child: _isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Text("Entrar"),
                           ),
                         ),
-                        child: const Text("Criar conta"),
-                      ),
-                    ],
+
+                        const SizedBox(height: 20),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+
+                            const Text("Não tem conta?"),
+
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const RegisterPage(),
+                                  ),
+                                );
+                              },
+
+                              child: const Text("Criar conta"),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-                
+                ),
               ),
             ),
           ),
