@@ -1,5 +1,5 @@
 ﻿import 'package:flutter/material.dart';
-import 'login_page.dart';
+import '../services/auth_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -12,6 +12,7 @@ class _RegisterPageState extends State<RegisterPage>
     with SingleTickerProviderStateMixin {
 
   final _formKey = GlobalKey<FormState>();
+  final authService = AuthService();
 
   final nameController = TextEditingController();
   final emailController = TextEditingController();
@@ -53,18 +54,46 @@ class _RegisterPageState extends State<RegisterPage>
     });
   }
 
-  void register() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> register() async {
+  final name = nameController.text.trim();
+  final email = emailController.text.trim();
+  final password = passwordController.text.trim();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Conta criada com sucesso"),
-        ),
-      );
+  try {
 
-      Navigator.pop(context);
-    }
+    await authService.signUp(
+      name,
+      email,
+      password,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Conta criada com sucesso!"),
+      ),
+    );
+
+  } catch (e) {
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Este email já está cadastrado"),
+        backgroundColor: Colors.red,
+      ),
+    );
+
   }
+}
+    // if (_formKey.currentState!.validate()) {
+
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(
+    //       content: Text("Conta criada com sucesso"),
+    //     ),
+    //   );
+
+    //   Navigator.pop(context);
+    // }
 
   @override
   void dispose() {

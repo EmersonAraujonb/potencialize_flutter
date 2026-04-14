@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'pages/splash_page.dart';
+import 'package:provider/provider.dart';
+import 'controllers/user_controller.dart';
 
 Future<void> main() async {
 
@@ -17,7 +19,12 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   bool isDark = prefs.getBool('isDark') ?? false;
 
-  runApp(MyApp(isDark: isDark));
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => UserController()..loadUser(),
+      child: MyApp(isDark: isDark),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {

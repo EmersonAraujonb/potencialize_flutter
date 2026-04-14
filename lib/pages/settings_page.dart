@@ -1,124 +1,97 @@
-import 'package:app_cursos/main.dart';
-import 'package:flutter/material.dart';
 import 'package:app_cursos/core/supabase_client.dart';
-import 'user_page.dart';
+import 'package:app_cursos/main.dart';
+import 'package:app_cursos/pages/user_page.dart';
+import 'package:flutter/material.dart';
+import '../services/profile_service.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+
+  final profileService = ProfileService();
+
+  String name = '';
+  String? _avatarUrl;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadProfile();
+  }
+
+  Future<void> loadProfile() async {
+  final profile = await profileService.getProfile();
+
+  await supabase.auth.refreshSession();
+  final currentUser = supabase.auth.currentUser;
+
+  if (!mounted) return;
+
+  setState(() {
+    name = profile['name'] ?? '';
+
+    _avatarUrl = currentUser?.userMetadata?['avatar_url']
+        ?? profile['avatar_url'];
+
+    isLoading = false;
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {
 
-    final user = supabase.auth.currentUser;
-    final avatarUrl = user?.userMetadata?['avatar_url'];
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Configurações"),
-      ),
+      appBar: AppBar(title: const Text("Configurações")),
 
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
 
-          // PERFIL DO USUÁRIO
+          // 👤 PERFIL
           Card(
-            elevation: 2,
-            child: ListTile(
+            child: ListTile( 
               leading: CircleAvatar(
                 radius: 22,
-                backgroundImage:
-                    avatarUrl != null ? NetworkImage(avatarUrl) : null,
-                child: avatarUrl == null
-                    ? const Icon(Icons.person)
-                    : null,
+                backgroundColor: Colors.grey[200],
+                backgroundImage: (_avatarUrl != null && _avatarUrl!.isNotEmpty)
+                ? NetworkImage('${_avatarUrl!}?t=${DateTime.now().millisecondsSinceEpoch}')
+                : null,
               ),
 
-              title: Text(
-                user?.userMetadata?['full_name'] ??
-                user?.email ??
-                "Usuário",
-              ),
+              title: Text(name.isNotEmpty ? name : "Usuário"),
+              subtitle: const Text("Ver perfil"),
 
-              subtitle: Text(
-                user?.email ?? "",
-              ),
-
-              trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+              trailing: const Icon(Icons.arrow_forward_ios),
 
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const UserPage(),
-                  ),
-                );
+                // Navegar para a página de perfil
+              Navigator.push( context, MaterialPageRoute( builder: (_) => const UserPage(), ), );
               },
             ),
           ),
 
           const SizedBox(height: 20),
 
-          // OPÇÕES
-          const Text(
-            "Preferências",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          Card(
-            child: Column(
-              children: [
-
-                ListTile(
-                  leading: const Icon(Icons.dark_mode),
-                  title: const Text("Tema escuro"),
-                  trailing: Switch(
-                    value: Theme.of(context).brightness == Brightness.dark,
-                    onChanged: (value) {
-                      MyApp.of(context).toggleTheme(value);
-                    },
-                  )
-                ),
-
-                const Divider(height: 1),
-
-                ListTile(
-                  leading: const Icon(Icons.notifications),
-                  title: const Text("Notificações"),
-                  onTap: () {},
-                ),
-
-                const Divider(height: 1),
-
-                ListTile(
-                  leading: const Icon(Icons.help_outline),
-                  title: const Text("Ajuda"),
-                  onTap: () {},
-                ),
-
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // SAIR
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text(
-                "Sair",
-                style: TextStyle(color: Colors.red),
-              ),
-              onTap: () {
-                print("Logout");
-              },
-            ),
+          // 🌙 TEMA (exemplo)
+          SwitchListTile(
+            value: Theme.of(context).brightness == Brightness.dark,
+            title: const Text("Modo escuro"),
+            onChanged: (value) {
+              MyApp.of(context).toggleTheme(value);
+            },
           ),
         ],
       ),

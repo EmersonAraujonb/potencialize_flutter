@@ -11,13 +11,19 @@ class AuthService {
     return response;
   }
 
-  Future<AuthResponse> signUp(String email, String password) async {
-    final response = await supabase.auth.signUp(
-      email: email,
-      password: password,
-    );
-    return response;
-  }
+  Future<AuthResponse> signUp(
+  String name,
+  String email,
+  String password,
+) async {
+  return await supabase.auth.signUp(
+    email: email,
+    password: password,
+    data: {
+      'name': name,
+    },
+  );
+}
 
   Future<void> signOut() async {
     await supabase.auth.signOut();

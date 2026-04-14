@@ -15,12 +15,19 @@ class _MainPageState extends State<MainPage> {
 
   int _index = 0;
 
-  final pages = const [
-    HomePage(),
-    SearchPage(),
-    MeusCursosPage(),
-    SettingsPage(),
+  late final List<Widget> pages;
+
+@override
+void initState() {
+  super.initState();
+
+  pages = [
+    const HomePage(),
+    const SearchPage(),
+    const MeusCursosPage(),
+    const SettingsPage(),
   ];
+}
 
   @override
   Widget build(BuildContext context) {

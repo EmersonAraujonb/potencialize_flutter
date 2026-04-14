@@ -85,22 +85,32 @@ class _UserPageState extends State<UserPage> {
   }
 
   Future<void> saveAvatarUrl(String url) async {
-    try {
-      await supabase.auth.updateUser(
-        UserAttributes(
-          data: {
-            'avatar_url': url,
-          },
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
+  try {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar avatar: $e')),
-      );
-    }
+    // ✅ salva no AUTH (opcional)
+    await supabase.auth.updateUser(
+      UserAttributes(
+        data: {
+          'avatar_url': url,
+        },
+      ),
+    );
+
+    // 🔥 SALVA NO BANCO (ESSENCIAL)
+    await supabase.from('profiles').update({
+      'avatar_url': url,
+    }).eq('id', user.id);
+
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erro ao salvar avatar: $e')),
+    );
   }
+}
 
   Future<void> changeAvatar() async {
     print("USER ID: ${supabase.auth.currentUser?.id}");
@@ -182,9 +192,9 @@ class _UserPageState extends State<UserPage> {
                       child: CircleAvatar(
                         radius: 45,
                         backgroundColor: Colors.grey[200],
-                        backgroundImage: _avatarUrl != null
-                            ? NetworkImage(_avatarUrl!)
-                            : null,
+                        backgroundImage: (_avatarUrl != null && _avatarUrl!.isNotEmpty)
+                        ? NetworkImage('${_avatarUrl!}?t=${DateTime.now().millisecondsSinceEpoch}')
+                        : null,
                         child: _avatarUrl == null
                             ? const Icon(Icons.person, size: 45)
                             : null,
